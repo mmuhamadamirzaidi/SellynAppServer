@@ -1,9 +1,14 @@
 package com.mmuhamadamirzaidi.sellynappserver;
 
+import android.app.AlertDialog;
+import android.app.Dialog;
+import android.content.DialogInterface;
 import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.NavigationView;
 import android.support.v4.view.GravityCompat;
@@ -19,22 +24,31 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.Window;
+import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import com.firebase.ui.database.FirebaseRecyclerAdapter;
 import com.firebase.ui.database.FirebaseRecyclerOptions;
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
+import com.google.firebase.storage.UploadTask;
 import com.mmuhamadamirzaidi.sellynappserver.Common.Common;
 import com.mmuhamadamirzaidi.sellynappserver.Interface.ItemClickListener;
 import com.mmuhamadamirzaidi.sellynappserver.Model.Category;
 import com.mmuhamadamirzaidi.sellynappserver.ViewHolder.CategoryViewHolder;
 import com.squareup.picasso.Picasso;
 
+import java.util.UUID;
+
+import dmax.dialog.SpotsDialog;
 import io.paperdb.Paper;
 
 public class MainActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener {
@@ -42,7 +56,15 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     FirebaseDatabase database;
     DatabaseReference category;
 
-    ImageView header_profile_image;
+    FirebaseStorage storage;
+    StorageReference storageReference;
+
+    Category newCategory;
+
+    Uri saveUri;
+    private final int PICK_IMAGE_REQUEST = 71;
+
+    ImageView header_profile_image, select_image;
 
     TextView header_fullname, header_identity_card;
 
@@ -55,6 +77,16 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
     FloatingActionButton fab;
 
+    EditText add_category_name;
+
+    ImageView add_image_category;
+
+    Button button_update, button_cancel;
+
+    AlertDialog dialog;
+
+    Dialog updateDialog, updateLoadingDialog;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -64,6 +96,10 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         toolbar.setTitle("");
         setSupportActionBar(toolbar);
 
+        // Custom dialog
+        updateLoadingDialog = new SpotsDialog.Builder().setContext(MainActivity.this).setTheme(R.style.Update).build();
+        dialog = new SpotsDialog.Builder().setContext(MainActivity.this).setTheme(R.style.Upload).build();
+
         // Swipe Layout
         swipe_layout_category = (SwipeRefreshLayout) findViewById(R.id.swipe_layout_category);
         swipe_layout_category.setColorSchemeResources(R.color.colorPrimaryDark);
@@ -72,7 +108,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         FirebaseDatabase database = FirebaseDatabase.getInstance();
         category = database.getReference("Category");
 
-
+        storage = FirebaseStorage.getInstance();
+        storageReference = storage.getReference();
 
         // Swipe Layout
         swipe_layout_category = (SwipeRefreshLayout) findViewById(R.id.swipe_layout_category);
@@ -81,10 +118,9 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         swipe_layout_category.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
             @Override
             public void onRefresh() {
-                if (Common.isConnectedToInternet(getBaseContext())){
+                if (Common.isConnectedToInternet(getBaseContext())) {
                     loadCategory();
-                }
-                else{
+                } else {
                     Toast.makeText(getBaseContext(), "Please check Internet connection!", Toast.LENGTH_SHORT).show();
                 }
             }
@@ -94,10 +130,9 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         swipe_layout_category.post(new Runnable() {
             @Override
             public void run() {
-                if (Common.isConnectedToInternet(getBaseContext())){
+                if (Common.isConnectedToInternet(getBaseContext())) {
                     loadCategory();
-                }
-                else{
+                } else {
                     Toast.makeText(getBaseContext(), "Please check Internet connection!", Toast.LENGTH_SHORT).show();
                 }
             }
@@ -165,7 +200,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 //                        product_id.putExtra("categoryId", adapter.getRef(position).getKey());
 //                        startActivity(product_id);
 
-                        Toast.makeText(MainActivity.this, "Category ID"+adapter.getRef(position).getKey(), Toast.LENGTH_SHORT).show();
+                        Toast.makeText(MainActivity.this, "Category ID" + adapter.getRef(position).getKey(), Toast.LENGTH_SHORT).show();
                     }
                 });
             }
@@ -231,8 +266,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             Intent menuIntent = new Intent(MainActivity.this, MainActivity.class);
             startActivity(menuIntent);
 
-        }
-        else if (id == R.id.nav_cart) {
+        } else if (id == R.id.nav_cart) {
 
             Toast.makeText(MainActivity.this, "News", Toast.LENGTH_SHORT).show();
 
@@ -240,20 +274,19 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
             Toast.makeText(MainActivity.this, "Wishlist", Toast.LENGTH_SHORT).show();
 
-        }
-        else if (id == R.id.news) {
+        } else if (id == R.id.news) {
 
             Toast.makeText(MainActivity.this, "News", Toast.LENGTH_SHORT).show();
 
-        }else if (id == R.id.nav_account) {
+        } else if (id == R.id.nav_account) {
 
             Toast.makeText(MainActivity.this, "News", Toast.LENGTH_SHORT).show();
 
-        }else if (id == R.id.nav_settings) {
+        } else if (id == R.id.nav_settings) {
 
             Toast.makeText(MainActivity.this, "News", Toast.LENGTH_SHORT).show();
 
-        }else if (id == R.id.nav_sign_out) {
+        } else if (id == R.id.nav_sign_out) {
 
             //Forget user information
             Paper.book().destroy();
@@ -270,4 +303,135 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         return true;
     }
 
+    @Override
+    public boolean onContextItemSelected(MenuItem item) {
+
+        if (item.getTitle().equals(Common.UPDATE)) {
+
+            showUpdateDialog(adapter.getRef(item.getOrder()).getKey(), adapter.getItem(item.getOrder()));
+        } else if (item.getTitle().equals(Common.DELETE)) {
+
+            deleteCategory(adapter.getRef(item.getOrder()).getKey());
+        }
+
+        return super.onContextItemSelected(item);
+    }
+
+    private void deleteCategory(String key) {
+        category.child(key).removeValue();
+    }
+
+    private void showUpdateDialog(final String key, final Category item) {
+
+        updateDialog = new Dialog(MainActivity.this);
+        updateDialog.setCanceledOnTouchOutside(false);
+        updateDialog.setContentView(R.layout.dialog_activity_update_category);
+
+        add_image_category = updateDialog.findViewById(R.id.add_image_category);
+
+        add_category_name = updateDialog.findViewById(R.id.add_category_name);
+
+
+        select_image = updateDialog.findViewById(R.id.select_image);
+
+        button_update = updateDialog.findViewById(R.id.button_update);
+        button_cancel = updateDialog.findViewById(R.id.button_cancel);
+
+        // Set original value
+        add_category_name.setText(item.getName());
+
+        select_image.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                addImage();
+            }
+        });
+
+        add_image_category.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                uploadNewImage(item);
+            }
+        });
+
+        button_update.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+                updateLoadingDialog.show();
+                item.setName(add_category_name.getText().toString().trim());
+                category.child(key).setValue(item);
+
+                updateLoadingDialog.dismiss();
+                updateDialog.cancel();
+                Toast.makeText(MainActivity.this, item.getName() + " category was updated!", Toast.LENGTH_SHORT).show();
+            }
+        });
+
+        button_cancel.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                updateDialog.cancel();
+            }
+        });
+
+        updateDialog.show();
+
+    }
+
+    private void uploadNewImage(final Category item) {
+        dialog.show();
+
+        if (saveUri != null) {
+
+            String imageName = UUID.randomUUID().toString();
+            final StorageReference imageFolder = storageReference.child("images/" + imageName);
+            imageFolder.putFile(saveUri).addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
+                @Override
+                public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
+                    dialog.dismiss();
+
+                    Toast.makeText(MainActivity.this, "Image uploaded!", Toast.LENGTH_SHORT).show();
+                    imageFolder.getDownloadUrl().addOnSuccessListener(new OnSuccessListener<Uri>() {
+                        @Override
+                        public void onSuccess(Uri uri) {
+                            dialog.dismiss();
+
+                            // Update new image info and upload link
+                            item.setImage(uri.toString());
+                        }
+                    });
+                }
+            }).addOnFailureListener(new OnFailureListener() {
+                @Override
+                public void onFailure(@NonNull Exception e) {
+                    dialog.dismiss();
+
+                    updateDialog.cancel();
+                    Toast.makeText(MainActivity.this, "" + e.getMessage(), Toast.LENGTH_SHORT).show();
+                }
+            });
+        } else {
+            dialog.dismiss();
+            Toast.makeText(MainActivity.this, "Please select category image!", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    private void addImage() {
+        Intent intent = new Intent();
+        intent.setType("image/*");
+        intent.setAction(Intent.ACTION_GET_CONTENT);
+        startActivityForResult(Intent.createChooser(intent, "Select Image"), PICK_IMAGE_REQUEST);
+
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+
+        if (requestCode == PICK_IMAGE_REQUEST && resultCode == RESULT_OK
+                && data != null && data.getData() != null) {
+            saveUri = data.getData();
+        }
+    }
 }
