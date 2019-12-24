@@ -3,6 +3,7 @@ package com.mmuhamadamirzaidi.sellynappserver;
 import android.content.Intent;
 import android.os.Bundle;
 
+import android.support.annotation.NonNull;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.NavigationView;
 import android.support.v4.view.GravityCompat;
@@ -13,16 +14,25 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
+import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.firebase.ui.database.FirebaseRecyclerAdapter;
+import com.firebase.ui.database.FirebaseRecyclerOptions;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.storage.FirebaseStorage;
+import com.google.firebase.storage.StorageReference;
 import com.mmuhamadamirzaidi.sellynappserver.Common.Common;
+import com.mmuhamadamirzaidi.sellynappserver.Interface.ItemClickListener;
+import com.mmuhamadamirzaidi.sellynappserver.Model.Category;
+import com.mmuhamadamirzaidi.sellynappserver.ViewHolder.CategoryViewHolder;
 import com.squareup.picasso.Picasso;
 
 import io.paperdb.Paper;
@@ -38,6 +48,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
     RecyclerView recycler_category;
     RecyclerView.LayoutManager layoutManager;
+
+    FirebaseRecyclerAdapter<Category, CategoryViewHolder> adapter;
 
     SwipeRefreshLayout swipe_layout_category;
 
@@ -58,14 +70,45 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
         // Init Firebase
         FirebaseDatabase database = FirebaseDatabase.getInstance();
-
         category = database.getReference("Category");
+
+
+
+        // Swipe Layout
+        swipe_layout_category = (SwipeRefreshLayout) findViewById(R.id.swipe_layout_category);
+        swipe_layout_category.setColorSchemeResources(R.color.colorPrimaryDark);
+
+        swipe_layout_category.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
+            @Override
+            public void onRefresh() {
+                if (Common.isConnectedToInternet(getBaseContext())){
+                    loadCategory();
+                }
+                else{
+                    Toast.makeText(getBaseContext(), "Please check Internet connection!", Toast.LENGTH_SHORT).show();
+                }
+            }
+        });
+
+        // Default, load for first time
+        swipe_layout_category.post(new Runnable() {
+            @Override
+            public void run() {
+                if (Common.isConnectedToInternet(getBaseContext())){
+                    loadCategory();
+                }
+                else{
+                    Toast.makeText(getBaseContext(), "Please check Internet connection!", Toast.LENGTH_SHORT).show();
+                }
+            }
+        });
 
         fab = findViewById(R.id.fab);
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Toast.makeText(MainActivity.this, "Clicked!", Toast.LENGTH_SHORT).show();
+                Intent mainIntent = new Intent(MainActivity.this, AddCategoryActivity.class);
+                startActivity(mainIntent);
             }
         });
 
@@ -96,6 +139,48 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 //        recycler_category.setHasFixedSize(true); //Need to remove if using Firebase Recycler Adapter/Disable for API 19 and below
         layoutManager = new LinearLayoutManager(this);
         recycler_category.setLayoutManager(layoutManager);
+    }
+
+    private void loadCategory() {
+
+        FirebaseRecyclerOptions<Category> options = new FirebaseRecyclerOptions.Builder<Category>()
+                .setQuery(category, Category.class)
+                .build();
+
+        adapter = new FirebaseRecyclerAdapter<Category, CategoryViewHolder>(options) {
+            @Override
+            protected void onBindViewHolder(@NonNull CategoryViewHolder viewHolder, int position, @NonNull Category model) {
+
+                viewHolder.category_name.setText(model.getName());
+
+                Picasso.with(getBaseContext()).load(model.getImage()).into(viewHolder.category_image);
+
+                final Category clickItem = model;
+                viewHolder.setItemClickListener(new ItemClickListener() {
+                    @Override
+                    public void onClick(View view, int position, boolean isLongClick) {
+
+                        // Get CategoryId and send to new activity
+//                        Intent product_id = new Intent(MainActivity.this, ProductListActivity.class);
+//                        product_id.putExtra("categoryId", adapter.getRef(position).getKey());
+//                        startActivity(product_id);
+
+                        Toast.makeText(MainActivity.this, "Category ID"+adapter.getRef(position).getKey(), Toast.LENGTH_SHORT).show();
+                    }
+                });
+            }
+
+            @NonNull
+            @Override
+            public CategoryViewHolder onCreateViewHolder(@NonNull ViewGroup viewGroup, int i) {
+                View itemView = LayoutInflater.from(viewGroup.getContext())
+                        .inflate(R.layout.item_category, viewGroup, false);
+                return new CategoryViewHolder(itemView);
+            }
+        };
+        adapter.startListening();
+        recycler_category.setAdapter(adapter);
+        swipe_layout_category.setRefreshing(false);
     }
 
     @Override

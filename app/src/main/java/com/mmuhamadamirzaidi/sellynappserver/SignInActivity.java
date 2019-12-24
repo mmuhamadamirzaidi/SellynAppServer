@@ -92,7 +92,6 @@ public class SignInActivity extends AppCompatActivity {
 
                             Common.currentUser = user;
                             SendUserToMainActivity();
-                            //login ok
                         }
                         else{
                             dialog.dismiss();
