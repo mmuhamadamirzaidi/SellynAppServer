@@ -2,7 +2,6 @@ package com.mmuhamadamirzaidi.sellynappserver;
 
 import android.app.AlertDialog;
 import android.app.Dialog;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
@@ -24,7 +23,6 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.Window;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
@@ -75,11 +73,11 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
     SwipeRefreshLayout swipe_layout_category;
 
-    FloatingActionButton fab;
-
     EditText add_category_name;
 
     ImageView add_image_category;
+
+    FloatingActionButton add_category;
 
     Button button_update, button_cancel;
 
@@ -138,8 +136,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             }
         });
 
-        fab = findViewById(R.id.fab);
-        fab.setOnClickListener(new View.OnClickListener() {
+        add_category = findViewById(R.id.add_category);
+        add_category.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 Intent mainIntent = new Intent(MainActivity.this, AddCategoryActivity.class);
@@ -196,9 +194,9 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                     public void onClick(View view, int position, boolean isLongClick) {
 
                         // Get CategoryId and send to new activity
-//                        Intent product_id = new Intent(MainActivity.this, ProductListActivity.class);
-//                        product_id.putExtra("categoryId", adapter.getRef(position).getKey());
-//                        startActivity(product_id);
+                        Intent product_id = new Intent(MainActivity.this, ProductListActivity.class);
+                        product_id.putExtra("categoryId", adapter.getRef(position).getKey());
+                        startActivity(product_id);
 
                         Toast.makeText(MainActivity.this, "Category ID" + adapter.getRef(position).getKey(), Toast.LENGTH_SHORT).show();
                     }
