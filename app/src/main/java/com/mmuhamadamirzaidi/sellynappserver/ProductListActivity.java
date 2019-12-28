@@ -162,7 +162,7 @@ public class ProductListActivity extends AppCompatActivity {
             protected void onBindViewHolder(@NonNull final ProductViewHolder viewHolder, final int position, @NonNull final Product model) {
 
                 viewHolder.product_name.setText(model.getProductName());
-//                viewHolder.product_notification.setText(model.getNotificationNo());
+                viewHolder.product_notification.setText(model.getNotificationNo());
 
                 Picasso.with(getBaseContext()).load(model.getProductImage()).into(viewHolder.product_image);
 

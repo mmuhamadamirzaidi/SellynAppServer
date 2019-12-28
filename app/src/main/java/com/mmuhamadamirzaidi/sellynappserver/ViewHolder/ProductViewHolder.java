@@ -13,7 +13,8 @@ import com.mmuhamadamirzaidi.sellynappserver.R;
 
 public class ProductViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener, View.OnCreateContextMenuListener {
 
-    public ImageView product_image, product_wishlist, product_share, product_quick_cart;
+//    public ImageView product_image, product_wishlist, product_share, product_quick_cart;
+    public ImageView product_image;
     public TextView product_name, product_notification;
 
     private ItemClickListener itemClickListener;
@@ -23,9 +24,9 @@ public class ProductViewHolder extends RecyclerView.ViewHolder implements View.O
 
         product_image = (ImageView) itemView.findViewById(R.id.product_image);
 
-        product_quick_cart = (ImageView) itemView.findViewById(R.id.product_quick_cart);
-        product_wishlist = (ImageView) itemView.findViewById(R.id.product_wishlist);
-        product_share = (ImageView) itemView.findViewById(R.id.product_share);
+//        product_quick_cart = (ImageView) itemView.findViewById(R.id.product_quick_cart);
+//        product_wishlist = (ImageView) itemView.findViewById(R.id.product_wishlist);
+//        product_share = (ImageView) itemView.findViewById(R.id.product_share);
 
         product_name = (TextView) itemView.findViewById(R.id.product_name);
         product_notification = (TextView) itemView.findViewById(R.id.product_notification);
