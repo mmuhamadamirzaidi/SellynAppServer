@@ -122,7 +122,7 @@ public class AddProductActivity extends AppCompatActivity {
         if (saveUri != null){
 
             String imageName = UUID.randomUUID().toString();
-            final StorageReference imageFolder = storageReference.child("images/"+imageName);
+            final StorageReference imageFolder = storageReference.child("products/"+imageName);
 
             if (add_product_name_ongoing.length() > 0) {
                 imageFolder.putFile(saveUri).addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {

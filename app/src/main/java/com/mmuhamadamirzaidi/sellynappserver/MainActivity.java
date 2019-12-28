@@ -73,7 +73,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     SwipeRefreshLayout swipe_layout_category;
 
     EditText add_category_name;
-
     ImageView add_image_category;
 
     FloatingActionButton add_category;
@@ -382,7 +381,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         if (saveUri != null) {
 
             String imageName = UUID.randomUUID().toString();
-            final StorageReference imageFolder = storageReference.child("images/" + imageName);
+            final StorageReference imageFolder = storageReference.child("categories/" + imageName);
             imageFolder.putFile(saveUri).addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
                 @Override
                 public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {

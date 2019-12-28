@@ -90,7 +90,7 @@ public class AddCategoryActivity extends AppCompatActivity {
         if (saveUri != null){
 
             String imageName = UUID.randomUUID().toString();
-            final StorageReference imageFolder = storageReference.child("images/"+imageName);
+            final StorageReference imageFolder = storageReference.child("categories/"+imageName);
 
             if (add_category_name_ongoing.length() > 0) {
                 imageFolder.putFile(saveUri).addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {

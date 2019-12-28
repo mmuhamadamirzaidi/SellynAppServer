@@ -5,7 +5,7 @@
     android:id="@+id/activity_update_category"
     android:layout_width="wrap_content"
     android:layout_height="wrap_content"
-    tools:context=".MainActivity"
+    tools:context=".ProductListActivity"
     android:layout_gravity="center">
 
     <LinearLayout
