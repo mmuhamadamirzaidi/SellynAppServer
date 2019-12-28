@@ -59,7 +59,7 @@ public class AddCategoryActivity extends AppCompatActivity {
         add_image_category = (ImageView) findViewById(R.id.add_image_category);
 
         // Init Firebase
-        FirebaseDatabase database = FirebaseDatabase.getInstance();
+        database = FirebaseDatabase.getInstance();
         category = database.getReference("Category");
 
         storage = FirebaseStorage.getInstance();
